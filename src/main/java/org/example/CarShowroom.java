@@ -22,8 +22,7 @@ public class CarShowroom {
         try {
             int currentAmount = (avalibleCars.get(car) == null) ? 0 : avalibleCars.get(car);
             avalibleCars.put(car, ++currentAmount);
-            System.out.println("Производитель " + provider.getName() + " выпустил 1 авто " + car.getModel());
-            condition.signalAll();
+            System.out.println("Производитель " + provider.getName() + " выпустил 1 авто " + car);
         } finally {
             lock.unlock();
         }
@@ -31,7 +30,7 @@ public class CarShowroom {
 
     public void sellCar(Car car, Customer customer) {
         System.out.println("Покупатель: " + customer.getName() + " зашел в автосалон");
-        if (car.getModel().getPrice() > customer.getAmountOfMoney()) {
+        if (car.getPrice() > customer.getAmountOfMoney()) {
             System.out.println("У покупателя " + customer.getName() + " не хватает денег на машину");
             return;
         }
@@ -39,13 +38,12 @@ public class CarShowroom {
         try {
             if (lock.tryLock(customer.getDesireTimeoutInSeconds(), TimeUnit.SECONDS)) {
                 if (avalibleCars.get(car) == null || avalibleCars.get(car) == 0) {
-                    System.out.println("На складе нет модели " + car.getModel());
+                    System.out.println("На складе нет модели " + car);
                 } else {
                     int currentAmount = (avalibleCars.get(car) == null) ? 0 : avalibleCars.get(car);
                     avalibleCars.put(car, --currentAmount);
-                    condition.signalAll();
                     Thread.sleep(CAR_PREPARATION_TIME_IN_SECONDS * 1000);
-                    System.out.println("Покупатель " + customer.getName() + ", уехал на новеньком авто: " + car.getModel());
+                    System.out.println("Покупатель " + customer.getName() + ", уехал на новеньком авто: " + car);
                 }
                 lock.unlock();
             }
