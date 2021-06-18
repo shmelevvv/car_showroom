@@ -16,42 +16,42 @@ public class CarShowroom {
     }
 
     public void receiveCar(Provider provider, Car car) {
-        if (lock.tryLock()) {
+        try {
+            lock.lock();
             int currentAmount = (avalibleCars.get(car) == null) ? 0 : avalibleCars.get(car);
             avalibleCars.put(car, ++currentAmount);
             System.out.println("Производитель " + provider.getName() + " выпустил 1 авто " + car);
             condition.signal();
+        } finally {
             lock.unlock();
-        } else {
-            try {
-                condition.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
     }
 
     public void sellCar(Car car, Customer customer) {
-        System.out.println("Покупатель: " + customer.getName() + " зашел в автосалон");
+        System.out.println(customer.getName() + " зашел в автосалон, хочет купить " + car);
         if (car.getPrice() > customer.getAmountOfMoney()) {
-            System.out.println("У покупателя " + customer.getName() + " не хватает денег на машину");
+            System.out.println("У " + customer.getName() + " не хватает денег на машину");
             return;
         }
-
+        int waitingTime = 0;
         try {
-            if (lock.tryLock(customer.getDesireTimeoutInSeconds(), TimeUnit.SECONDS)) {
-                if (avalibleCars.get(car) == null || avalibleCars.get(car) == 0) {
-                    System.out.println("На складе нет модели " + car);
-                } else {
+            while (waitingTime <= customer.getDesireTimeoutInSeconds()) {
+                lock.lock();
+                if (avalibleCars.get(car) != null && avalibleCars.get(car) != 0) {
                     int currentAmount = (avalibleCars.get(car) == null) ? 0 : avalibleCars.get(car);
                     avalibleCars.put(car, --currentAmount);
-                    System.out.println("Покупатель " + customer.getName() + ", уехал на новеньком авто: " + car);
+                    System.out.println(customer.getName() + ", уехал на новеньком авто: " + car);
+                    return;
+                } else {
+                    condition.await(customer.getDesireTimeoutInSeconds(), TimeUnit.SECONDS);
+                    waitingTime += customer.getDesireTimeoutInSeconds();
                 }
-                condition.signal();
-                lock.unlock();
             }
+            System.out.println("На складе нет модели " + car);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        } finally {
+            lock.unlock();
         }
     }
 }
