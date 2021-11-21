@@ -2,12 +2,10 @@ package org.example;
 
 public class Customer {
     private String name;
-    private Long amountOfMoney;
     private Long desireTimeoutInSeconds;
 
-    public Customer(String name, Long amountOfMoney, Long desireTimeoutInSeconds) {
+    public Customer(String name, Long desireTimeoutInSeconds) {
         this.name = name;
-        this.amountOfMoney = amountOfMoney;
         this.desireTimeoutInSeconds = desireTimeoutInSeconds;
     }
 
@@ -17,14 +15,6 @@ public class Customer {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Long getAmountOfMoney() {
-        return amountOfMoney;
-    }
-
-    public void setAmountOfMoney(Long amountOfMoney) {
-        this.amountOfMoney = amountOfMoney;
     }
 
     public Long getDesireTimeoutInSeconds() {
